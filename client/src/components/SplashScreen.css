@@ -1,0 +1,109 @@
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.12), transparent 35%),
+    radial-gradient(circle at 80% 30%, rgba(249, 115, 22, 0.10), transparent 32%),
+    linear-gradient(180deg, #050816 0%, #060b18 100%);
+}
+
+.splash-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.splash-orb {
+  position: relative;
+  width: 156px;
+  height: 156px;
+  display: grid;
+  place-items: center;
+}
+
+.splash-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  animation: orbit 6s linear infinite;
+}
+
+.splash-ring-a {
+  inset: 12px;
+  border-top-color: rgba(34, 211, 238, 0.65);
+  border-right-color: rgba(249, 115, 22, 0.45);
+}
+
+.splash-ring-b {
+  inset: 28px;
+  border-left-color: rgba(34, 211, 238, 0.45);
+  border-bottom-color: rgba(249, 115, 22, 0.6);
+  animation-direction: reverse;
+  animation-duration: 8s;
+}
+
+.splash-core {
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.95), rgba(249, 115, 22, 0.95));
+  box-shadow: 0 0 48px rgba(34, 211, 238, 0.35);
+  animation: pulseCore 1.8s ease-in-out infinite;
+}
+
+.splash-brand {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: #f8fafc;
+}
+
+.splash-copy {
+  font-size: 13px;
+  color: rgba(226, 232, 240, 0.72);
+  max-width: 280px;
+}
+
+.splash-progress {
+  width: 180px;
+  height: 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  position: relative;
+  margin-top: 8px;
+}
+
+.splash-progress::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0), rgba(34, 211, 238, 1), rgba(249, 115, 22, 1));
+  animation: sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseCore {
+  0%, 100% { transform: scale(0.96); filter: saturate(1); }
+  50% { transform: scale(1.02); filter: saturate(1.2); }
+}
+
+@keyframes sweep {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
