@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { BRAND } from '../utils/brand'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, Home, Mic, Brain, BookOpen, History, Sun, Moon, Timer, CalendarDays, Menu, X, Shield, Languages, LogIn, UserCircle, Radio, MoreHorizontal, BookHeart, Gamepad2, ShieldCheck, TrendingUp, Building2, ScanLine, MessageCircle } from 'lucide-react'
+import { Home, Mic, Brain, BookOpen, History, Sun, Moon, Timer, CalendarDays, Menu, X, Shield, Languages, LogIn, UserCircle, Radio, MoreHorizontal, BookHeart, Gamepad2, ShieldCheck, TrendingUp, Building2, ScanLine, MessageCircle } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../services/api'
 import toast from 'react-hot-toast'
 
+// All links — NO Verify
 const links = [
-  { to: '/',           label: 'Home', Icon: Home },
+  { to: '/',           label: 'Home',       Icon: Home },
   { to: '/chat',       label: 'AI Chat',    Icon: MessageCircle },
   { to: '/mandi',      label: 'Mandi',      Icon: TrendingUp },
   { to: '/government', label: 'Gov',        Icon: Building2 },
@@ -17,11 +18,11 @@ const links = [
   { to: '/interviews', label: 'Interviews', Icon: Mic },
   { to: '/creator',    label: 'Creator',    Icon: Mic },
   { to: '/assistant',  label: 'Assistant',  Icon: Brain },
-  { to: '/verification', label: 'Verify',   Icon: ShieldCheck },
   { to: '/study',      label: 'Study',      Icon: BookOpen },
   { to: '/focus',      label: 'Focus',      Icon: Timer },
   { to: '/planner',    label: 'Planner',    Icon: CalendarDays },
   { to: '/safety',     label: 'Safety',     Icon: Shield },
+  { to: '/translator', label: 'Translator', Icon: Languages },
   { to: '/podcast',    label: 'Podcast',    Icon: Radio },
   { to: '/journal',    label: 'Journal',    Icon: BookHeart },
   { to: '/games',      label: 'Games',      Icon: Gamepad2 },
@@ -29,30 +30,30 @@ const links = [
   { to: '/history',    label: 'History',    Icon: History },
 ]
 
-// Bottom nav: Home + 4 core Sathi AI modules + "More"
+// Mobile bottom nav primary tabs
 const primaryLinks = [
   { to: '/',           label: 'Home',    Icon: Home },
   { to: '/chat',       label: 'AI Chat', Icon: MessageCircle },
   { to: '/mandi',      label: 'Mandi',   Icon: TrendingUp },
-  { to: '/verification',label: 'Verify', Icon: ShieldCheck },
   { to: '/government', label: 'Gov',     Icon: Building2 },
+  { to: '/fairscan',   label: 'FairScan',Icon: ScanLine },
 ]
 
+// Mobile "More" drawer
 const moreLinks = [
-  { to: '/chat',       label: 'AI Chat',    Icon: MessageCircle },
-  { to: '/mandi',      label: 'Mandi',      Icon: TrendingUp },
-  { to: '/government', label: 'Gov Services',Icon: Building2 },
-  { to: '/fairscan',   label: 'FairScan',   Icon: ScanLine },
+  { to: '/interviews', label: 'Interviews', Icon: Mic },
   { to: '/creator',    label: 'Creator',    Icon: Mic },
-  { to: '/translator', label: 'Translator', Icon: Languages },
-  { to: '/verification', label: 'Verify',   Icon: ShieldCheck },
+  { to: '/assistant',  label: 'Assistant',  Icon: Brain },
   { to: '/study',      label: 'Study',      Icon: BookOpen },
   { to: '/focus',      label: 'Focus',      Icon: Timer },
   { to: '/planner',    label: 'Planner',    Icon: CalendarDays },
-  { to: '/history',    label: 'History',    Icon: History },
+  { to: '/safety',     label: 'Safety',     Icon: Shield },
+  { to: '/translator', label: 'Translator', Icon: Languages },
   { to: '/podcast',    label: 'Podcast',    Icon: Radio },
   { to: '/journal',    label: 'Journal',    Icon: BookHeart },
   { to: '/games',      label: 'Games',      Icon: Gamepad2 },
+  { to: '/profile',    label: 'Profile',    Icon: UserCircle },
+  { to: '/history',    label: 'History',    Icon: History },
 ]
 
 export default function Navbar() {
@@ -80,21 +81,25 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Desktop */}
+      {/* ── Desktop navbar ── */}
       <nav className="navbar">
         <NavLink to="/" className="nav-logo">
           <div className="nav-logo-icon" style={{ background: BRAND.logoGradient }}>
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#fff', fontFamily: 'Syne,system-ui,sans-serif', letterSpacing: -1 }}>{BRAND.logoLetter}</span>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#fff', fontFamily: 'Syne,system-ui,sans-serif', letterSpacing: -1 }}>
+              {BRAND.logoLetter}
+            </span>
           </div>
         </NavLink>
 
+        {/* Scrollable links strip — all links, no overflow */}
         <div className="nav-links">
-            {links.map(({ to, label, Icon }) => (
+          {links.map(({ to, label, Icon }) => (
             <NavLink key={to} to={to} end={to === '/'}
               className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-              <Icon size={13} />{label}
+              <Icon size={12} />
+              {label}
               {to === '/history' && sessionCount > 0 && (
-                <span style={{ marginLeft: 4, fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 10, background: '#8b5cf6', color: '#fff', lineHeight: 1.4 }}>
+                <span style={{ marginLeft: 3, fontSize: 9, fontWeight: 800, padding: '1px 4px', borderRadius: 8, background: '#8b5cf6', color: '#fff', lineHeight: 1.4 }}>
                   {sessionCount > 99 ? '99+' : sessionCount}
                 </span>
               )}
@@ -102,29 +107,32 @@ export default function Navbar() {
           ))}
         </div>
 
+        {/* Theme toggle */}
         <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-          className="icon-btn" onClick={toggle} title={dark ? 'Switch to light mode' : 'Switch to dark mode'} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
+          className="icon-btn" onClick={toggle}
+          title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
           {dark ? <Sun size={15} /> : <Moon size={15} />}
         </motion.button>
 
-        {/* Google Auth / Profile */}
+        {/* Auth */}
         {user ? (
-          <NavLink to="/profile" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--glass)', textDecoration: 'none', fontSize: 12, fontWeight: 600, color: 'var(--text1)' }}>
+          <NavLink to="/profile" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--glass)', textDecoration: 'none', fontSize: 12, fontWeight: 600, color: 'var(--text1)', flexShrink: 0 }}>
             {avatarUrl
               ? <img src={avatarUrl} alt="" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }} />
               : <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#fff' }}>{initials}</div>
             }
-            <span style={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName?.split(' ')[0]}</span>
+            <span style={{ maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName?.split(' ')[0]}</span>
           </NavLink>
         ) : (
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleSignIn}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--glass)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--text1)' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--glass)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--text1)', flexShrink: 0 }}>
             <LogIn size={13} /><span>Sign in</span>
           </motion.button>
         )}
       </nav>
 
-      {/* Mobile top bar */}
+      {/* ── Mobile top bar ── */}
       <div className="mob-top">
         <NavLink to="/" className="nav-logo">
           <div className="nav-logo-icon" style={{ width: 30, height: 30, background: BRAND.logoGradient }}>
@@ -132,7 +140,9 @@ export default function Navbar() {
           </div>
         </NavLink>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={toggle} title={dark ? 'Switch to light mode' : 'Switch to dark mode'} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
+          <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={toggle}
+            title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
             {dark ? <Sun size={14} /> : <Moon size={14} />}
           </button>
           {user
@@ -150,7 +160,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* ── Mobile full dropdown ── */}
       <AnimatePresence>
         {open && (
           <motion.div className="mob-menu"
@@ -166,7 +176,7 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* Bottom nav — Home + 4 primary links + More drawer */}
+      {/* ── Mobile bottom nav ── */}
       <nav className="bot-nav">
         {primaryLinks.map(({ to, label, Icon }) => (
           <NavLink key={to} to={to} end={to === '/'}
@@ -182,7 +192,7 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* More drawer */}
+      {/* ── Mobile More drawer ── */}
       <AnimatePresence>
         {moreOpen && (
           <>

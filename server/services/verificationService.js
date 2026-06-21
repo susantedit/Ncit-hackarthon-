@@ -18,15 +18,31 @@ function getKeys() {
     process.env.GROQ_API_KEY,
     process.env.GROQ_API_KEY_2,
     process.env.GROQ_API_KEY_3,
+    process.env.GROQ_API_KEY_4,
+    process.env.GROQ_API_KEY_5,
+    process.env.GROQ_API_KEY_6,
+    process.env.GROQ_API_KEY_7,
+    process.env.GROQ_API_KEY_8,
+    process.env.GROQ_API_KEY_9,
   ].filter(Boolean)
+}
+
+// Round-robin key index so we spread load across all keys
+let _keyIndex = 0
+function getNextKey(keys) {
+  const key = keys[_keyIndex % keys.length]
+  _keyIndex++
+  return key
 }
 
 async function callGroq(prompt, temperature = 0.2, maxTokens = 1600) {
   const keys = getKeys()
   if (!keys.length) throw new Error('No GROQ_API_KEY configured')
 
+  // Try every key, rotating from current position
   let lastError
-  for (const key of keys) {
+  for (let attempt = 0; attempt < keys.length; attempt++) {
+    const key = keys[(_keyIndex + attempt) % keys.length]
     try {
       const response = await axios.post(
         GROQ_URL,
@@ -44,18 +60,21 @@ async function callGroq(prompt, temperature = 0.2, maxTokens = 1600) {
 
       const content = response.data?.choices?.[0]?.message?.content
       if (!content) throw new Error('Invalid response from Groq')
+      _keyIndex = (_keyIndex + attempt + 1) % keys.length // advance past used key
       return content
     } catch (error) {
       const status = error.response?.status
       if (status === 401 || status === 429) {
         lastError = error
-        continue
+        continue // try next key
       }
       throw new Error(`Groq API error: ${error.message}`)
     }
   }
 
-  throw lastError || new Error('All Groq API keys exhausted.')
+  // All keys rate-limited — return null instead of throwing so analysis degrades gracefully
+  console.warn('[verificationService] All Groq keys rate-limited, degrading gracefully')
+  return null
 }
 
 function normalizeText(text) {
@@ -407,8 +426,9 @@ Important rules:
 - Reply with ONLY the verdict word, nothing else.`
 
   try {
-    const raw = normalizeText(await callGroq(prompt, 0.0, 20))
-    const verdictMatch = raw.match(/\b(VERIFIED|LIKELY_TRUE|PARTLY_TRUE|LIKELY_FALSE|FALSE|UNVERIFIABLE)\b/i)
+    const raw = await callGroq(prompt, 0.0, 20)
+    if (!raw) return null
+    const verdictMatch = normalizeText(raw).match(/\b(VERIFIED|LIKELY_TRUE|PARTLY_TRUE|LIKELY_FALSE|FALSE|UNVERIFIABLE)\b/i)
     return verdictMatch ? verdictMatch[1].toUpperCase() : null
   } catch {
     return null
@@ -454,7 +474,7 @@ Return only the explanation text.`
   try {
     if (getKeys().length) {
       const result = await callGroq(prompt, 0.3, 400)
-      return normalizeText(result).slice(0, 700)
+      if (result) return normalizeText(result).slice(0, 700)
     }
   } catch {
     // fall through to template
@@ -671,8 +691,10 @@ ${sourceText}`,
         0.1,
         1200
       )
-      const claims = parseGroqClaims(raw)
-      if (claims.length) return claims.slice(0, 10)
+      if (raw) {
+        const claims = parseGroqClaims(raw)
+        if (claims.length) return claims.slice(0, 10)
+      }
     }
   } catch {
     // fall through to heuristic extraction

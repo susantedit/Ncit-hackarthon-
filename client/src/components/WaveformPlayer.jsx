@@ -61,40 +61,33 @@ export default function WaveformPlayer({ audioUrl, isLoading, mode = 'creator' }
 
   const toggle = () => {
     if (!audioRef.current) return
-    
-    if (playing) {
-      audioRef.current.pause()
-      if (animationRef.current) cancelAnimationFrame(animationRef.current)
-    } else {
+
+    if (audioRef.current.paused) {
       // Setup Web Audio API on first play (after user gesture)
       if (!analyserRef.current) {
         try {
           const audioContext = new (window.AudioContext || window.webkitAudioContext)()
           const source = audioContext.createMediaElementSource(audioRef.current)
           const analyser = audioContext.createAnalyser()
-          
           analyser.fftSize = 128
           source.connect(analyser)
           analyser.connect(audioContext.destination)
           analyserRef.current = analyser
-          console.log('Web Audio API initialized')
         } catch (err) {
           console.error('Web Audio API error:', err)
         }
       }
-      
-      console.log('Attempting to play audio...')
+
       audioRef.current.play()
-        .then(() => {
-          console.log('Audio playing successfully')
-          updateFrequencies()
-        })
+        .then(() => updateFrequencies())
         .catch(err => {
           console.error('Play error:', err)
-          alert('Cannot play audio: ' + err.message)
+          toast?.error?.('Cannot play audio: ' + err.message)
         })
+    } else {
+      audioRef.current.pause()
+      if (animationRef.current) cancelAnimationFrame(animationRef.current)
     }
-    setPlaying(!playing)
   }
 
   const onTimeUpdate = () => {
@@ -165,9 +158,12 @@ export default function WaveformPlayer({ audioUrl, isLoading, mode = 'creator' }
         ref={audioRef} 
         onTimeUpdate={onTimeUpdate} 
         onLoadedMetadata={onLoadedMetadata}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
         onEnded={() => { 
           setPlaying(false)
           setProgress(0)
+          setCurrentTime(0)
           if (animationRef.current) cancelAnimationFrame(animationRef.current)
         }}
         crossOrigin="anonymous"
